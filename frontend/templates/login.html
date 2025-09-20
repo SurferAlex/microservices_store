@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-image: url('/frontend/images/background.jpg');
+            background-size: cover;  /* чтобы изображение покрывало весь экран */
+            background-position: center;  /* центрирование изображения */
+            background-repeat: no-repeat;  /* чтобы изображение не повторялось */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        .button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .link {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .output.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Вход в систему</h1>
+        <form id="loginForm" class="form">
+            <input 
+                type="username" 
+                id="username" 
+                class="input" 
+                placeholder="Username" 
+                required 
+                autocomplete="username"
+            />
+            <input 
+                type="password" 
+                id="password" 
+                class="input" 
+                placeholder="Пароль" 
+                required 
+                autocomplete="current-password"
+            />
+            <button type="submit" id="submitBtn" class="button">
+                Войти
+            </button>
+            <div class="links">
+                <a href="/register" class="link">Регистрация</a>
+                <a href="/health" class="link" title="Проверка здоровья">Health</a>
+            </div>
+        </form>
+        <pre id="output" class="output"></pre>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const output = document.getElementById('output');
+        const submitButton = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            output.textContent = '';
+            output.classList.remove('visible');
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value.trim(),
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // ИСПРАВЛЯЕМ: сохраняем правильное поле token
+                    if (data.token) {
+                        localStorage.setItem('authToken', data.token);
+                    }
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                } else {
+                    output.textContent = await response.text();
+                    output.classList.add('visible');
+                }
+            } catch (error) {
+                output.textContent = error.toString();
+                output.classList.add('visible');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
