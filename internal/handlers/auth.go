@@ -3,58 +3,65 @@ package handlers
 import (
 	"encoding/json"
 	"html/template"
+	"log"
 	"net/http"
+	"vscode_test/internal/entity"
+	"vscode_test/internal/repository/psql"
+	"vscode_test/internal/tokens"
 )
-
-var usersReg []Creds
-
-type Creds struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 func Register(w http.ResponseWriter, r *http.Request) {
 
-	var newUser Creds
+	var registerData struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	err := json.NewDecoder(r.Body).Decode(&newUser)
+	err := json.NewDecoder(r.Body).Decode(&registerData)
 	if err != nil {
 		http.Error(w, "Неверный JSON", http.StatusBadRequest)
 		return
 	}
 
-	// Проверяем, что такой пользователь не существует
-	for _, user := range usersReg {
-		if user.Username == newUser.Username || user.Email == newUser.Email {
-			http.Error(w, "Пользователь уже существует", http.StatusConflict)
-			return
-		}
-
+	// Проверка на существование пользователя
+	existingUser, err := psql.GetUserByUsername(registerData.Username)
+	if err == nil && existingUser != nil {
+		http.Error(w, "Пользователь уже существует.", http.StatusConflict)
+		return
 	}
 
-	usersReg = append(usersReg, newUser)
+	// Добавление нового пользователя
 
-	response := map[string]interface{}{
-		"username": newUser.Username,
-		"email":    newUser.Email,
-		"message":  "Пользователь успешно зарегистрирован",
+	newUser := entity.User{
+		Username: registerData.Username,
+		Email:    registerData.Email,
+		Password: registerData.Password,
 	}
 
+	if err := psql.InsertUser(newUser); err != nil {
+		http.Error(w, "Ошибка при сохранении пользователя.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Пользователь успешно зарегистрирован",
+	})
+
 }
 
-func RegisterPage(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// Путь к HTML
 
-	tmpl, err := template.ParseFiles("../frontend/templates/register.html")
+	tmpl, err := template.ParseFiles("./frontend/templates/register.html")
 	if err != nil {
 		http.Error(w, "Ошибка загрузки шаблона", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Countent-type", "text.html")
+	w.Header().Set("Content-Type", "text.html")
 
 	// Выполнение шаблона (отправка в браузер)
 	err = tmpl.Execute(w, nil)
@@ -66,7 +73,6 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Countent-type", "application/json")
 
 	var loginData struct {
 		Username string `json:"username"`
@@ -75,49 +81,42 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&loginData)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Неверный JSON",
-		})
+		http.Error(w, "Неверный формат запроса.", http.StatusBadRequest)
 		return
 	}
 
-	var foundUser *Creds
-	for i := range usersReg {
-		if usersReg[i].Username == loginData.Username && usersReg[i].Password == loginData.Password {
-			foundUser = &usersReg[i]
-			break
-		}
-	}
-
-	if foundUser == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "Неверный логин или пароль",
-		})
+	user, err := psql.GetUserByUsername(loginData.Username)
+	if err != nil || user == nil || user.Password != loginData.Password {
+		http.Error(w, "Неверные данные для входа.", http.StatusUnauthorized)
 		return
 	}
 
-	response := map[string]interface{}{
-		"message": "Успешный вход в систему",
-		"type":    "Bearer",
-		"user": map[string]interface{}{
-			"username": foundUser.Username,
-		},
+	// Создание JWT - токена
+	token, err := tokens.GenerateJWT(user.ID, user.Username)
+	if err != nil {
+		log.Printf("Ошибка создания токена: %v", err)
+		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
+		return
 	}
 
-	json.NewEncoder(w).Encode(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":   "success",
+		"token":    token,
+		"redirect": "/profile",
+	})
 }
 
-func LoginPage(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
-	tmpl, err := template.ParseFiles("../frontend/templates/login.html")
+	tmpl, err := template.ParseFiles("./frontend/templates/login.html")
 	if err != nil {
 		http.Error(w, "Ошибка загрузки шаблона", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Countent-type", "text.html")
+	w.Header().Set("Content-Type", "text.html")
 
 	err = tmpl.Execute(w, nil)
 	if err != nil {

@@ -17,9 +17,9 @@ func SetupRoutes(r *mux.Router) {
 
 	// Публичные endpoints
 	r.HandleFunc("/health", handlers.HealthHandler).Methods("GET")
-	r.HandleFunc("/register", handlers.RegisterPage).Methods("GET")
+	r.HandleFunc("/register", handlers.RegisterHandler).Methods("GET")
 	r.HandleFunc("/register", handlers.Register).Methods("POST")
-	r.HandleFunc("/login", handlers.LoginPage).Methods("GET")
+	r.HandleFunc("/login", handlers.LoginHandler).Methods("GET")
 	r.HandleFunc("/login", handlers.Login).Methods("POST")
 
 	// Защищенные endpoints
@@ -31,6 +31,6 @@ func SetupRoutes(r *mux.Router) {
 
 	// Статические файлы
 
-	r.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", http.FileServer(http.Dir("../frontend"))))
+	r.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", http.FileServer(http.Dir("./frontend"))))
 
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"vscode_test/internal/tokens"
 )
 
 func LoggingMiddleware(next http.Handler) http.Handler {
@@ -45,7 +46,9 @@ func CorsMiddleware(next http.Handler) http.Handler {
 }
 
 func IsValidToken(token string) bool {
-	return token == "Bearer secret-token-123"
+	tokenString := strings.TrimPrefix(token, "Bearer")
+	_, err := tokens.ValidateJWT(tokenString)
+	return err == nil
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {

@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            background-image: url('/frontend/images/background.jpg');
+            background-image: url('/frontend/images/background2.jpg');
             background-size: cover;  /* чтобы изображение покрывало весь экран */
             background-position: center;  /* центрирование изображения */
             background-repeat: no-repeat;  /* чтобы изображение не повторялось */
@@ -164,7 +164,7 @@
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
+                    const data = await response.json(); 
                     // ИСПРАВЛЯЕМ: сохраняем правильное поле token
                     if (data.token) {
                         localStorage.setItem('authToken', data.token);
