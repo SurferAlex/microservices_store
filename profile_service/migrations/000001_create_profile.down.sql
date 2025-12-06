@@ -1,0 +1,1 @@
+DROP TABLE IF NOT EXISXS profiles;

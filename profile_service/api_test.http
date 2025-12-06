@@ -1,0 +1,161 @@
+### ============================================
+### ТЕСТЫ PROFILE SERVICE
+### ============================================
+
+### 1. Health check
+GET http://localhost:8081/health
+
+### ============================================
+GET http://localhost:8080/health
+
+### ============================================
+### ПРОВЕРКА ИНТЕГРАЦИИ С AUTH_SERVICE
+### ============================================
+
+### Проверка существования пользователя в auth_service
+GET http://localhost:8080/api/v1/users/1
+
+### ============================================
+### ТЕСТЫ ПРОФИЛЕЙ
+### ============================================
+
+### Создание профиля (успешно)
+POST http://localhost:8081/api/v1/profiles
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "first_name": "Иван",
+  "last_name": "Иванов",
+  "phone": "+79991234567",
+  "date_of_birth": "1990-01-01T00:00:00Z"
+}
+
+### Создание профиля с несуществующим user_id (должна быть ошибка)
+POST http://localhost:8081/api/v1/profiles
+Content-Type: application/json
+
+{
+  "user_id": 999,
+  "first_name": "Тест",
+  "last_name": "Тестов",
+  "phone": "+79991234567",
+  "date_of_birth": "1990-01-01T00:00:00Z"
+}
+
+### Создание профиля с невалидными данными (должна быть ошибка валидации)
+POST http://localhost:8081/api/v1/profiles
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "first_name": "А",
+  "last_name": "",
+  "phone": "123"
+}
+
+### Получить профиль по ID
+GET http://localhost:8081/api/v1/profiles/10
+
+### Получить профиль по user_id
+GET http://localhost:8081/api/v1/profiles/user/1
+
+### Обновить профиль
+PUT http://localhost:8081/api/v1/profiles/10
+Content-Type: application/json
+
+{
+  "first_name": "Arturr",
+  "last_name": "Konkov",
+  "phone": "+79855578840",
+  "date_of_birth": "1998-06-19T00:00:00Z"
+}
+
+### Удалить профиль
+DELETE http://localhost:8081/api/v1/profiles/9
+
+### ============================================
+### ТЕСТЫ АДРЕСОВ
+### ============================================
+
+### Получить все адреса профиля
+GET http://localhost:8081/api/v1/addresses/profile/10
+
+### Создать адрес
+POST http://localhost:8081/api/v1/addresses/profile/10
+Content-Type: application/json
+
+{
+  "label": "Дом",
+  "country": "Россия",
+  "city": "Москва",
+  "street": "Ленина",
+  "house": "10",
+  "apartment": "5",
+  "postal_code": "123456",
+  "is_primary": true
+}
+
+### Обновить адрес
+PUT http://localhost:8081/api/v1/addresses/12
+Content-Type: application/json
+
+{
+  "label": "Офиссс",
+  "country": "Россия",
+  "city": "Санкт-Петербург",
+  "street": "Невский проспект",
+  "house": "20",
+  "apartment": "10",
+  "postal_code": "190000",
+  "is_primary": false
+}
+
+### Установить основной адрес
+PUT http://localhost:8081/api/v1/addresses/profile/10/12/primary
+
+### Удалить адрес
+DELETE http://localhost:8081/api/v1/addresses/13
+
+### ============================================
+### ТЕСТЫ КОНТАКТОВ
+### ============================================
+
+### Получить все контакты профиля
+GET http://localhost:8081/api/v1/contacts/profile/10
+
+### Создать контакт (email)
+POST http://localhost:8081/api/v1/contacts/profile/10
+Content-Type: application/json
+
+{
+  "type": "email",
+  "value": "ivan@example.com",
+  "is_verified": false
+}
+
+### Создать контакт (phone)
+POST http://localhost:8081/api/v1/contacts/profile/10
+Content-Type: application/json
+
+{
+  "type": "phone",
+  "value": "+79855578840",
+  "is_verified": true
+}
+
+### Обновить контакт
+PUT http://localhost:8081/api/v1/contacts/3
+Content-Type: application/json
+
+{
+  "type": "email",
+  "value": "artielucifer@gmail.com",
+  "is_verified": false
+}
+
+### Подтвердить контакт
+PUT http://localhost:8081/api/v1/contacts/4/verify
+
+### Удалить контакт
+DELETE http://localhost:8081/api/v1/contacts/5
