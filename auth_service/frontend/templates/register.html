@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-image: url('/frontend/images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            border-color: #16a34a;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.1);
+        }
+
+        .button {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background: #15803d;
+        }
+
+        .button:disabled {
+            background: #86efac;
+            cursor: not-allowed;
+        }
+
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .link {
+            color: #16a34a;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .output {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            display: none;
+            transition: opacity 0.3s ease;
+            white-space: pre-wrap;
+        }
+
+        .output.visible {
+            display: block;
+        }
+
+        .output.success {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+
+        .output.error {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Регистрация</h1>
+        <form id="registerForm" class="form">
+            <input 
+                type="username" 
+                id="username" 
+                class="input" 
+                placeholder="Username" 
+                required 
+                autocomplete="username"
+            />
+             <input 
+                type="email" 
+                id="email" 
+                class="input" 
+                placeholder="Email" 
+                required 
+                autocomplete="email"
+             />
+            <input 
+                type="password" 
+                id="password" 
+                class="input" 
+                placeholder="Пароль" 
+                required 
+                autocomplete="new-password"
+            />
+            <button type="submit" id="submitBtn" class="button">
+                Зарегистрироваться
+            </button>
+            <div class="links">
+                <a href="/login" class="link">Войти</a>
+                <a href="/health" class="link" title="Проверка здоровья">Health</a>
+            </div>
+        </form>
+        <pre id="output" class="output"></pre>
+    </div>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const output = document.getElementById('output');
+        const submitButton = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            output.textContent = '';
+            output.classList.remove('visible', 'success', 'error');
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value.trim(),
+                        email: document.getElementById('email').value.trim(),
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    output.textContent = data.message;
+                    output.classList.add('success', 'visible');
+                    form.reset();
+                    
+                    // Плавное затухание перед редиректом
+                    setTimeout(() => {
+                        document.body.style.transition = 'opacity 0.5s ease';
+                        document.body.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            window.location.href = '/login';
+                        }, 500);
+                    }, 1000);
+                } else {
+                    output.textContent = data.message || 'Произошла ошибка при регистрации';
+                    output.classList.add('error', 'visible');
+                }
+
+            } catch (error) {
+                output.textContent = 'Произошла ошибка при отправке запроса';
+                output.classList.add('error', 'visible');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
