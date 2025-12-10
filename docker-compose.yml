@@ -25,6 +25,7 @@ services:
     build:
       context: ./auth_service
       dockerfile: Dockerfile
+    image: auth_service:v1.0.0
     container_name: auth_service
     ports:
       - "8080:8080"
@@ -49,12 +50,11 @@ services:
       - db_network
       - app_network
     mem_limit: 512m
-    cpus: '0.5'
-
   profile_service:
     build:
       context: ./profile_service
       dockerfile: Dockerfile
+    image: profile_service:v1.0.0
     container_name: profile_service
     ports:
       - "8081:8081"

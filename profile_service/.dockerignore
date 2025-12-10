@@ -1,4 +1,4 @@
-# Git
+# Git файлы
 .git
 .gitignore
 
@@ -7,31 +7,31 @@
 .env.local
 .env.*.local
 
-# IDE
+# Файлы IDE
 .vscode
 .idea
 *.swp
 *.swo
 
-# Tests
+# Тесты
 *_test.go
 api_test.http
 
-# Documentation
+# Документация
 README.md
 *.md
 
-# Logs
+# Логи
 *.log
 
-# Temporary files
+# Временные файлы
 *.tmp
 *.temp
 
-# Docker
+# Докер файлы
 Dockerfile
 .dockerignore
 docker-compose.yml
 
-# Start scripts
+# Стартовый скрипт
 start
