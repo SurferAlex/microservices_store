@@ -12,13 +12,33 @@ jobs:
   # Задача: проверка кода
   check:
     name: Проверка кода
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest, macos-latest
     
     steps:
       - name: 📥 Получение кода
         uses: actions/checkout@v4
       
-      - name: 🔍 Информация о системе
+      - name: 🔧 Установка Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'  # Используем версию из вашего go.mod
+      
+      - name: 📦 Проверка auth_service
+        working-directory: ./auth_service
         run: |
-          echo "Работаем на: ${{ runner.os }}"
-          echo "Версия Go будет установлена автоматически"
+          echo "🔍 Проверяю auth_service..."
+          go mod download
+          go build ./cmd/main.go
+          echo "✅ auth_service компилируется успешно!"
+      
+      - name: 📦 Проверка profile_service
+        working-directory: ./profile_service
+        run: |
+          echo "🔍 Проверяю profile_service..."
+          go mod download
+          go build ./cmd/main.go
+          echo "✅ profile_service компилируется успешно!"
+      
+      - name: ✅ Все проверки пройдены
+        run: |
+          echo "🎉 Все сервисы успешно скомпилированы!"
