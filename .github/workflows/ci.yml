@@ -6,6 +6,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # Позволяет запускать вручную
 
 # Задачи (jobs)
 jobs:
@@ -102,6 +103,21 @@ jobs:
       - name: ✅ Все проверки пройдены
         run: |
           echo "🎉 Все проверки качества кода пройдены успешно!"
+      
+      - name: 📊 Создание Summary
+        if: success()
+        run: |
+          echo "## ✅ Проверка кода завершена успешно!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Выполненные проверки:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Форматирование кода (gofmt)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Статический анализ (go vet)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Проверка зависимостей (go mod tidy)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Компиляция проектов" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Сервисы:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ auth_service" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ profile_service" >> $GITHUB_STEP_SUMMARY
 
   # Задача: сборка Docker образов
   build:
@@ -173,11 +189,29 @@ jobs:
       - name: ✅ Образы успешно собраны
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
             echo "🎉 Docker образы опубликованы в GitHub Container Registry!"
-            echo "📦 auth_service: ghcr.io/${{ github.repository_owner }}/auth_service:latest"
-            echo "📦 profile_service: ghcr.io/${{ github.repository_owner }}/profile_service:latest"
+            echo "📦 auth_service: ghcr.io/${OWNER}/auth_service:latest"
+            echo "📦 profile_service: ghcr.io/${OWNER}/profile_service:latest"
           else
             echo "✅ Docker образы успешно собраны (не опубликованы, так как не main ветка)"
+          fi
+      
+      - name: 📊 Создание Summary
+        if: success()
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "## 🐳 Docker образы собраны успешно!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "### 📦 Опубликованные образы:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ \`ghcr.io/${OWNER}/auth_service:latest\`" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ \`ghcr.io/${OWNER}/profile_service:latest\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Образы доступны в [GitHub Packages](https://github.com/${{ github.repository }}/pkgs)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Образы собраны, но не опубликованы" >> $GITHUB_STEP_SUMMARY
+            echo "Публикация происходит только при push в ветку \`main\`" >> $GITHUB_STEP_SUMMARY
           fi
 
   # Задача: проверка миграций БД
@@ -254,3 +288,14 @@ jobs:
       - name: ✅ Проверка миграций завершена
         run: |
           echo "🎉 Все миграции БД проверены успешно!"
+      
+      - name: 📊 Создание Summary
+        if: success()
+        run: |
+          echo "## ✅ Миграции БД проверены успешно!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Проверенные миграции:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ auth_service: структура и синтаксис" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ profile_service: структура и синтаксис" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Все миграции имеют пары \`.up.sql\` и \`.down.sql\`" >> $GITHUB_STEP_SUMMARY
