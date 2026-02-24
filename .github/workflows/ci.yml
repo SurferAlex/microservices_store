@@ -1,0 +1,24 @@
+name: CI Pipeline
+
+# Когда запускается workflow
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+# Задачи (jobs)
+jobs:
+  # Задача: проверка кода
+  check:
+    name: Проверка кода
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Получение кода
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Информация о системе
+        run: |
+          echo "Работаем на: ${{ runner.os }}"
+          echo "Версия Go будет установлена автоматически"
