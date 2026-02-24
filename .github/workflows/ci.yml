@@ -21,9 +21,69 @@ jobs:
       - name: 🔧 Установка Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'  # Используем версию из вашего go.mod
+          go-version: '1.25'
       
-      - name: 📦 Проверка auth_service
+      - name: 🔍 Проверка форматирования auth_service
+        working-directory: ./auth_service
+        run: |
+          echo "📝 Проверяю форматирование кода auth_service..."
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "❌ Код не отформатирован! Запустите: gofmt -s -w ."
+            gofmt -s -d .
+            exit 1
+          fi
+          echo "✅ Форматирование корректно!"
+      
+      - name: 🔍 Проверка форматирования profile_service
+        working-directory: ./profile_service
+        run: |
+          echo "📝 Проверяю форматирование кода profile_service..."
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "❌ Код не отформатирован! Запустите: gofmt -s -w ."
+            gofmt -s -d .
+            exit 1
+          fi
+          echo "✅ Форматирование корректно!"
+      
+      - name: 🔍 Статический анализ auth_service
+        working-directory: ./auth_service
+        run: |
+          echo "🔎 Запускаю go vet для auth_service..."
+          go vet ./...
+          echo "✅ Статический анализ пройден!"
+      
+      - name: 🔍 Статический анализ profile_service
+        working-directory: ./profile_service
+        run: |
+          echo "🔎 Запускаю go vet для profile_service..."
+          go vet ./...
+          echo "✅ Статический анализ пройден!"
+      
+      - name: 📦 Проверка зависимостей auth_service
+        working-directory: ./auth_service
+        run: |
+          echo "📋 Проверяю go.mod и go.sum для auth_service..."
+          go mod tidy
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ go.mod или go.sum требуют обновления! Запустите: go mod tidy"
+            git status
+            exit 1
+          fi
+          echo "✅ Зависимости актуальны!"
+      
+      - name: 📦 Проверка зависимостей profile_service
+        working-directory: ./profile_service
+        run: |
+          echo "📋 Проверяю go.mod и go.sum для profile_service..."
+          go mod tidy
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ go.mod или go.sum требуют обновления! Запустите: go mod tidy"
+            git status
+            exit 1
+          fi
+          echo "✅ Зависимости актуальны!"
+      
+      - name: 📦 Проверка компиляции auth_service
         working-directory: ./auth_service
         run: |
           echo "🔍 Проверяю auth_service..."
@@ -31,7 +91,7 @@ jobs:
           go build ./cmd/main.go
           echo "✅ auth_service компилируется успешно!"
       
-      - name: 📦 Проверка profile_service
+      - name: 📦 Проверка компиляции profile_service
         working-directory: ./profile_service
         run: |
           echo "🔍 Проверяю profile_service..."
@@ -41,4 +101,4 @@ jobs:
       
       - name: ✅ Все проверки пройдены
         run: |
-          echo "🎉 Все сервисы успешно скомпилированы!"
+          echo "🎉 Все проверки качества кода пройдены успешно!"
