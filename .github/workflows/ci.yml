@@ -12,7 +12,7 @@ jobs:
   # Задача: проверка кода
   check:
     name: Проверка кода
-    runs-on: ubuntu-latest, macos-latest
+    runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Получение кода
