@@ -5,7 +5,9 @@ import (
 	"auth_service/internal/config"
 	"auth_service/internal/repository/psql"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -25,6 +27,14 @@ func main() {
 
 	// Подключение к БД
 	psql.InitDB(connectionString)
+
+	// Проверка миграций
+	dbURL := os.Getenv("DB_URL")
+	err := psql.RunMigrations(dbURL)
+	if err != nil {
+		log.Fatalf("Миграции не прошли: %v\n", err)
+	}
+	log.Println("Миграции успешно применены!")
 
 	// Регистрация маршрутов
 	r := mux.NewRouter()
