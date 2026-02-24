@@ -21,7 +21,7 @@ func LoadConfig() *Config {
 		DBPort:         getEnv("DBPort", "5432"),
 		DBName:         getEnv("DBName", "profile_service"),
 		DBUser:         getEnv("DBUser", "postgres"),
-		DBPassword:     getEnv("DBPassword", "qweasdzxc"),
+		DBPassword:     getEnv("DBPassword", ""),
 		AuthServiceURL: getEnv("AuthServiceURL", "http://localhost:8080"),
 	}
 }
@@ -30,6 +30,13 @@ func (c *Config) GetDBConnectionString() string {
 	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
 		return dsn
 	}
+
+	// Если пароль пустой, не включаем его в строку подключения
+	if c.DBPassword == "" {
+		return fmt.Sprintf("user=%s dbname=%s host=%s port=%s sslmode=disable",
+			c.DBUser, c.DBName, c.DBHost, c.DBPort)
+	}
+
 	return fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		c.DBUser, c.DBPassword, c.DBName, c.DBHost, c.DBPort)
 }
