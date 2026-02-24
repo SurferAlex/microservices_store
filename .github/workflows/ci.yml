@@ -121,7 +121,7 @@ jobs:
         with:
           context: ./auth_service
           file: ./auth_service/Dockerfile
-          push: false  # Пока только проверяем сборку, не пушим
+          push: false
           tags: auth_service:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -131,7 +131,7 @@ jobs:
         with:
           context: ./profile_service
           file: ./profile_service/Dockerfile
-          push: false  # Пока только проверяем сборку, не пушим
+          push: false
           tags: profile_service:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -139,3 +139,78 @@ jobs:
       - name: ✅ Образы успешно собраны
         run: |
           echo "🎉 Все Docker образы успешно собраны!"
+
+  # Задача: проверка миграций БД
+  migrations:
+    name: Проверка миграций БД
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Получение кода
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Установка golang-migrate
+        run: |
+          echo "📦 Устанавливаю golang-migrate..."
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+          migrate -version
+          echo "✅ golang-migrate установлен!"
+      
+      - name: 🔍 Проверка структуры миграций auth_service
+        run: |
+          echo "📋 Проверяю структуру миграций auth_service..."
+          cd auth_service/migrations
+          
+          # Проверяем, что все миграции имеют пары up/down
+          for file in *.up.sql; do
+            base="${file%.up.sql}"
+            if [ ! -f "${base}.down.sql" ]; then
+              echo "❌ Не найдена down-миграция для: $file"
+              exit 1
+            fi
+            echo "✅ Найдена пара: ${base}.up.sql и ${base}.down.sql"
+          done
+          
+          # Проверяем, что все down-миграции имеют up-пару
+          for file in *.down.sql; do
+            base="${file%.down.sql}"
+            if [ ! -f "${base}.up.sql" ]; then
+              echo "❌ Не найдена up-миграция для: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Все миграции auth_service имеют пары up/down"
+      
+      - name: 🔍 Проверка структуры миграций profile_service
+        run: |
+          echo "📋 Проверяю структуру миграций profile_service..."
+          cd profile_service/migrations
+          
+          # Проверяем, что все миграции имеют пары up/down
+          for file in *.up.sql; do
+            base="${file%.up.sql}"
+            if [ ! -f "${base}.down.sql" ]; then
+              echo "❌ Не найдена down-миграция для: $file"
+              exit 1
+            fi
+            echo "✅ Найдена пара: ${base}.up.sql и ${base}.down.sql"
+          done
+          
+          # Проверяем, что все down-миграции имеют up-пару
+          for file in *.down.sql; do
+            base="${file%.down.sql}"
+            if [ ! -f "${base}.up.sql" ]; then
+              echo "❌ Не найдена up-миграция для: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Все миграции profile_service имеют пары up/down"
+      
+      - name: 🔍 Валидация синтаксиса SQL миграций
+        run: |
+          echo "🔎 Проверяю синтаксис SQL файлов..."
+          
+          # Проверяем, что файлы не пустые и соде
