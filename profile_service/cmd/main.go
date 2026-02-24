@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"profile_service/internal/api"
 	"profile_service/internal/config"
 	"profile_service/internal/repository/psql"
@@ -27,14 +25,6 @@ func main() {
 
 	// Подключение к БД
 	psql.InitDB(connectionString)
-
-	// Проверка миграций
-	dbURL := os.Getenv("DB_URL")
-	err := psql.RunMigrations(dbURL)
-	if err != nil {
-		log.Fatalf("Миграции не прошли: %v\n", err)
-	}
-	log.Println("Миграции успешно применены!")
 
 	//Создание HTTP клиента для auth_service
 	authClient := service.NewAuthClient(cfg.AuthServiceURL)

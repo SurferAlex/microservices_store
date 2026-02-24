@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
@@ -38,20 +37,4 @@ func InitDB(connStr string) (*sql.DB, error) {
 
 	return db, nil
 
-}
-
-func RunMigrations(dbURL string) error {
-	m, err := migrate.New("file://migrations", dbURL)
-	if err != nil {
-		return fmt.Errorf("Ошибка запуска миграций %w", err)
-	}
-
-	if err := m.Up(); err != nil {
-		if err == migrate.ErrNoChange {
-			log.Println("База данных в актуальном состоянии")
-		} else {
-			return fmt.Errorf("критическая ошибка миграции: %w", err)
-		}
-	}
-	return nil
 }
