@@ -139,4 +139,3 @@ jobs:
       - name: ✅ Образы успешно собраны
         run: |
           echo "🎉 Все Docker образы успешно собраны!"
-          docker images | grep -E "(auth_service|profile_service)"
