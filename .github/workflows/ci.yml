@@ -129,20 +129,24 @@ jobs:
       - name: 🏷️ Подготовка тегов для auth_service
         id: meta-auth
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/auth_service"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME="ghcr.io/${OWNER}/auth_service"
           VERSION="${GITHUB_REF#refs/heads/}"
           VERSION="${VERSION#refs/tags/}"
           VERSION="${VERSION:-latest}"
+          VERSION=$(echo "$VERSION" | tr '[:upper:]' '[:lower:]')
           echo "tags=$IMAGE_NAME:$VERSION,$IMAGE_NAME:latest" >> $GITHUB_OUTPUT
           echo "📦 Теги для auth_service: $IMAGE_NAME:$VERSION, $IMAGE_NAME:latest"
       
       - name: 🏷️ Подготовка тегов для profile_service
         id: meta-profile
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/profile_service"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME="ghcr.io/${OWNER}/profile_service"
           VERSION="${GITHUB_REF#refs/heads/}"
           VERSION="${VERSION#refs/tags/}"
           VERSION="${VERSION:-latest}"
+          VERSION=$(echo "$VERSION" | tr '[:upper:]' '[:lower:]')
           echo "tags=$IMAGE_NAME:$VERSION,$IMAGE_NAME:latest" >> $GITHUB_OUTPUT
           echo "📦 Теги для profile_service: $IMAGE_NAME:$VERSION, $IMAGE_NAME:latest"
       
