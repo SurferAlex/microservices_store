@@ -26,10 +26,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&registerData); err != nil {
+		log.Printf("❌ Ошибка декодирования JSON: %v, Content-Type: %s, ContentLength: %d",
+			err, r.Header.Get("Content-Type"), r.ContentLength)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Неверный JSON",
+			"message": "Неверный JSON: " + err.Error(),
 		})
 		return
 	}

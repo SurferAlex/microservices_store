@@ -16,8 +16,8 @@ var (
 )
 
 func InitDB(connStr string) (*sql.DB, error) {
-
-	db, err := sql.Open("postgres", connStr)
+	var err error
+	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("не удалось открыть соединение: %w", err)
 	}
