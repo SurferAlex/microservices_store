@@ -9,7 +9,7 @@ type Profile struct {
 	LastName    string    `json:"last_name" db:"last_name" binding:"required,min=2,max=50"`
 	Phone       string    `json:"phone" db:"phone" binding:"required,min=5,max=20"`
 	AvatarURL   string    `json:"avatar_url,omitempty" db:"avatar_url" binding:"omitempty,url"`
-	DateOfBirth time.Time `json:"date_of_birth" db:"date_of_birth"`
+	DateOfBirth Date      `json:"date_of_birth,omitempty" db:"date_of_birth"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }

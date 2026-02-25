@@ -39,7 +39,6 @@ WORKDIR /app
 
 # Копируем собранный бинарник из builder
 COPY --from=builder /app/auth_service .
-COPY --from=builder /app/frontend ./frontend
 
 # Меняем владлельца файлов
 RUN chown -R appuser:appuser /app

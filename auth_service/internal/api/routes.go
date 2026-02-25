@@ -19,8 +19,7 @@ func SetupRoutes(r *mux.Router) {
 	// Публичные endpoints
 	r.HandleFunc("/health", handlers.HealthHandler).Methods("GET")
 	r.HandleFunc("/api/v1/users/{id}", handlers.GetUserByID).Methods("GET")
-	r.HandleFunc("/register", handlers.RegisterHandler).Methods("GET")
-	r.HandleFunc("/login", handlers.LoginHandler).Methods("GET")
+
 	r.Handle("/register", middleware.RateLimitIP(3, time.Minute)(http.HandlerFunc(handlers.Register))).Methods("POST")
 	r.Handle("/login", middleware.RateLimitIP(5, time.Minute)(http.HandlerFunc(handlers.Login))).Methods("POST")
 	r.HandleFunc("/auth/refresh", handlers.Refresh).Methods("POST")
@@ -28,9 +27,5 @@ func SetupRoutes(r *mux.Router) {
 	// Защищенные endpoints
 	r.HandleFunc("/admin/users/{id}/roles", handlers.GetUserRoles).Methods("GET")
 	r.HandleFunc("/admin/users/{id}/roles", handlers.AssignRole).Methods("PUT")
-
-	// Статические файлы
-
-	r.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", http.FileServer(http.Dir("./frontend"))))
 
 }

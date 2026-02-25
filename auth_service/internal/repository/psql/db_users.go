@@ -53,8 +53,8 @@ func GetUserByID(id int) (*entity.User, error) {
 	return &user, nil
 }
 
-func DeleteUser(username string) error {
+func DeleteUser(id string) error {
 	query := `DELETE FROM users WHERE id = $1`
-	_, err := db.Exec(query, username)
+	_, err := db.Exec(query, id)
 	return err
 }

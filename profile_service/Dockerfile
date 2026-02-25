@@ -26,9 +26,9 @@ FROM alpine:3.21.0
 
 # Метаданные
 LABEL maintainer="artielucifer@gmail.com"
-LABEL descriptions="Profile Service"
+LABEL description="Profile Service"
 
-# Создаем непривилигированного пользователя
+# Создаем непривилегированного пользователя
 RUN addgroup -g 1000 appuser && \
     adduser -D -u 1000 -G appuser appuser
 
@@ -40,10 +40,10 @@ WORKDIR /app
 # Копируем собранный бинарник из builder
 COPY --from=builder /app/profile_service .
 
-# Меняем владлеьца файлов
+# Меняем владельца файлов
 RUN chown -R appuser:appuser /app
 
-# Переключаемся на непривелигированного пользователя
+# Переключаемся на непривилегированного пользователя
 USER appuser
 
 # Открываем порт

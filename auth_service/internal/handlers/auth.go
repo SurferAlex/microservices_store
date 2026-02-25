@@ -7,7 +7,6 @@ import (
 	"auth_service/internal/service"
 	"auth_service/internal/tokens"
 	"encoding/json"
-	"html/template"
 	"log"
 	"net/http"
 	"regexp"
@@ -26,12 +25,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&registerData); err != nil {
-		log.Printf("❌ Ошибка декодирования JSON: %v, Content-Type: %s, ContentLength: %d",
-			err, r.Header.Get("Content-Type"), r.ContentLength)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Неверный JSON: " + err.Error(),
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Неверный JSON",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -40,7 +38,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Неверные данные: " + err.Error(),
+			"message": "Неверный JSON",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -128,25 +127,6 @@ func isPasswordStrong(password string) bool {
 	return len(password) >= 8 && hasUpper(password) && hasNumber(password) && hasSpecial(password)
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	// Путь к HTML
-
-	tmpl, err := template.ParseFiles("./frontend/templates/register.html")
-	if err != nil {
-		http.Error(w, "Ошибка загрузки шаблона", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text.html")
-
-	// Выполнение шаблона (отправка в браузер)
-	err = tmpl.Execute(w, nil)
-	if err != nil {
-		http.Error(w, "Ошибка выполнения шаблона", http.StatusInternalServerError)
-		return
-	}
-
-}
 func Login(w http.ResponseWriter, r *http.Request) {
 	var loginData struct {
 		Username string `json:"username" validate:"required"`
@@ -202,23 +182,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		ip := r.RemoteAddr
 		_ = psql.SaveRefreshToken(user.ID, hash, ua, ip, exp)
 		service.SetRefreshCookie(w, refresh, tokens.RefreshTTL())
-	}
-}
-
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-
-	tmpl, err := template.ParseFiles("./frontend/templates/login.html")
-	if err != nil {
-		http.Error(w, "Ошибка загрузки шаблона", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text.html")
-
-	err = tmpl.Execute(w, nil)
-	if err != nil {
-		http.Error(w, "Ошибка выполнения шаблона", http.StatusInternalServerError)
-		return
 	}
 }
 

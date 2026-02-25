@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"bytes"
+	"fmt"
+	"io"
 	"net/http"
 	"profile_service/internal/entity"
 	"profile_service/internal/repository/psql"
@@ -70,14 +73,22 @@ func CreateProfile(authClient *service.AuthClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID, _ := c.Get("request_id")
 
+		// Читаем сырое тело запроса для отладки
+		bodyBytes, _ := c.GetRawData()
+		fmt.Printf("🔍 Получен запрос: %s\n", string(bodyBytes))
+
+		// Восстанавливаем тело для биндинга
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 		var payload entity.Profile
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Неверный формат данных",
-				"details": err.Error(),
+				"error": "Неверный формат данных",
 			})
 			return
 		}
+
+		fmt.Printf("✅ Данные распарсены: %+v\n", payload)
 
 		if payload.UserID <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user_id обязателен"})
