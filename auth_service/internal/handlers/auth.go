@@ -190,7 +190,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":   "success",
 		"token":    token,
-		"redirect": "/profile",
+		"redirect": "http://localhost:8081/profile",
 	})
 
 	// Сгенерировать и сохранить refresh
