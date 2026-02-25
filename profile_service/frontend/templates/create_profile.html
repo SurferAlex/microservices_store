@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание профиля</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .input {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background: #5568d3;
+        }
+
+        .output {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .output.visible {
+            display: block;
+        }
+
+        .output.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+
+        .output.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Создание профиля</h1>
+        <form id="createProfileForm" class="form">
+            <input type="number" id="userId" class="input" placeholder="User ID" required />
+            <div class="form-row">
+                <input type="text" id="firstName" class="input" placeholder="Имя" required />
+                <input type="text" id="lastName" class="input" placeholder="Фамилия" required />
+            </div>
+            <input type="tel" id="phone" class="input" placeholder="Телефон" required />
+            <input type="date" id="dateOfBirth" class="input" placeholder="Дата рождения" />
+            <input type="url" id="avatarURL" class="input" placeholder="URL аватара (опционально)" />
+            <button type="submit" id="submitBtn" class="button">Создать профиль</button>
+        </form>
+        <pre id="output" class="output"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8081/api/v1';
+        const token = localStorage.getItem('authToken');
+
+        document.getElementById('createProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const output = document.getElementById('output');
+            const submitBtn = document.getElementById('submitBtn');
+
+            output.textContent = '';
+            output.classList.remove('visible', 'success', 'error');
+            submitBtn.disabled = true;
+
+            const payload = {
+                user_id: parseInt(document.getElementById('userId').value),
+                first_name: document.getElementById('firstName').value.trim(),
+                last_name: document.getElementById('lastName').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                date_of_birth: document.getElementById('dateOfBirth').value || undefined,
+                avatar_url: document.getElementById('avatarURL').value.trim() || undefined
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/profiles`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    output.textContent = data.message || 'Профиль создан успешно!';
+                    output.classList.add('success', 'visible');
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:8081/profile';
+                    }, 1500);
+                } else {
+                    output.textContent = data.error || 'Ошибка при создании профиля';
+                    output.classList.add('error', 'visible');
+                }
+            } catch (error) {
+                output.textContent = 'Ошибка: ' + error.toString();
+                output.classList.add('error', 'visible');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

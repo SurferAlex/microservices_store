@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/http"
 	"profile_service/internal/handlers"
 	"profile_service/internal/middleware"
 	"profile_service/internal/service"
@@ -16,6 +17,18 @@ func SetupRoutes(r *gin.Engine, authClient *service.AuthClient) {
 
 	// Публичные маршруты
 	r.GET("/health", handlers.HealthHandler)
+
+	// HTML шаблоны
+	r.LoadHTMLGlob("frontend/templates/*")
+	r.Static("/frontend", "./frontend")
+
+	r.GET("/profile", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "profile.html", nil)
+	})
+
+	r.GET("/profile/create", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "create-profile.html", nil)
+	})
 
 	api := r.Group("/api/v1")
 	{
