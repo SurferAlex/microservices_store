@@ -2,6 +2,7 @@ package psql
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -38,4 +39,12 @@ func GetRefreshToken(tokenHash string) (*RefreshRow, error) {
 func RevokeRefreshToken(tokenHash string) error {
 	_, err := db.Exec(`UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1`, tokenHash)
 	return err
+}
+
+func RevokeAllUsersTokens(userID int) error {
+	_, err := db.Exec(`UPDATE refresh_token SET revoked_at = NOW() WHERE user_id = %1 AND revore_at = NULL`, userID)
+	if err != nil {
+		return fmt.Errorf("Ошибка отзыва токена: %w", err)
+	}
+	return nil
 }

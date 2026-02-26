@@ -185,6 +185,32 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Logout(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("refresh_token")
+	if err != nil || c.Value == "" {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Refresh token не найден",
+	})
+
+	hash := tokens.HashRefreshToken(c.Value)
+
+	// Отзываем токен
+	_ = psql.RevokeRefreshToken(hash)
+
+	// Удаляем cookie
+	service.DeleteCookie(w, c.Value)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Выход выполнен",
+	})
+
+}
+
 func Refresh(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("refresh_token")
 	if err != nil || c.Value == "" {

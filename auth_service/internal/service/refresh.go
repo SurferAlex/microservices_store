@@ -35,7 +35,7 @@ func RotateRefresh(refresh string, userAgent, ip string) (string, string, error)
 	}
 
 	// Новый access
-	access, err := tokens.GenerateJWT(row.UserID, "") // username можно не кодировать, если не нужен
+	access, err := tokens.GenerateJWT(row.UserID, "")
 	if err != nil {
 		return "", "", err
 	}

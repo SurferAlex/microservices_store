@@ -62,16 +62,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		"/health":       true,
 		"/login":        true,
 		"/register":     true,
+		"/logout":       true,
 		"/auth/refresh": true,
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Пропускаем все статические файлы без авторизации
-		if strings.HasPrefix(r.URL.Path, "/frontend/") {
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		// Пропускаем endpoint для проверки пользователей (для межсервисного общения)
 		if strings.HasPrefix(r.URL.Path, "/api/v1/users/") {
 			next.ServeHTTP(w, r)
