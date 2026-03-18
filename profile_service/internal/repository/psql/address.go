@@ -3,6 +3,7 @@ package psql
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"profile_service/internal/entity"
 )
 
@@ -93,7 +94,12 @@ func GetAddressesByProfileID(profileID int) ([]entity.ProfileAddress, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Printf("rows close: %v", err)
+		}
+	}()
 
 	var addresses []entity.ProfileAddress
 
@@ -226,7 +232,12 @@ func SetPrimaryAddress(profileID int, addressID int) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	// Сбрасываем все адреса профиля
 	query1 := `

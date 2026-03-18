@@ -21,7 +21,7 @@ func SetCookie(w http.ResponseWriter, name, value string, msxAge int) {
 func GetCookie(r http.Request, name string) (string, error) {
 	cookie, err := r.Cookie(name)
 	if err != nil {
-		return "", fmt.Errorf("Не удалось получить cookie: %w", err)
+		return "", fmt.Errorf("не удалось получить cookie: %w", err)
 	}
 	return cookie.Value, nil
 }

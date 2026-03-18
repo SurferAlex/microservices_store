@@ -3,6 +3,7 @@ package handlers
 import (
 	"auth_service/internal/repository/psql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -29,5 +30,7 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 }

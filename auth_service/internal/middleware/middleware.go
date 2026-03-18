@@ -4,6 +4,7 @@ import (
 	"auth_service/internal/tokens"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -83,7 +84,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if token == "" {
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"Ошибка": "Токен отсутвует."}`))
+			if _, err := w.Write([]byte(`{"error": "Токен отсутвует."}`)); err != nil {
+				log.Printf("не удалось отправить JSON-ответ: %v", err)
+			}
 			return
 		}
 		tokenString := strings.TrimPrefix(token, "Bearer ")
@@ -91,7 +94,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"Ошибка": "Неверный токен."}`))
+			if _, err := w.Write([]byte(`{"error": "Неверный токен."}`)); err != nil {
+				log.Printf("не удалось отправить JSON-ответ: %v", err)
+			}
 			return
 		}
 		// Кладём userID в контекст

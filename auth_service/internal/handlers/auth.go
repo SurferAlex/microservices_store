@@ -27,20 +27,24 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&registerData); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		if err2 := json.NewEncoder(w).Encode(map[string]any{
 			"message": "Неверный JSON",
 			"error":   err.Error(),
-		})
+		}); err2 != nil {
+			log.Printf("не удалось отправить JSON-ответ об ошибке: %v", err2)
+		}
 		return
 	}
 
 	if err := validate.Struct(registerData); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err2 := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Неверный JSON",
 			"error":   err.Error(),
-		})
+		}); err2 != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err2)
+		}
 		return
 	}
 
@@ -48,20 +52,25 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if !isPasswordStrong(registerData.Password) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Пароль должен содержать минимум 8 символов, заглавную букву, цифру и спецсимвол",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
 	// Проверка на существование пользователя
 	existingUser, err := psql.GetUserByUsername(registerData.Username)
 	if err == nil && existingUser != nil {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{
+
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Пользователь уже существует.",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
@@ -70,9 +79,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err == nil && existingByEmail != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Email уже используется.",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
@@ -88,9 +99,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Ошибка хеширования пароля",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 	newUser.Password = hashed
@@ -98,9 +111,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err := psql.InsertUser(newUser); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Ошибка при сохранении пользователя.",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
@@ -113,9 +128,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	// Успешный ответ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"message": "Пользователь успешно зарегистрирован",
-	})
+	}); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 }
 
 func isPasswordStrong(password string) bool {
@@ -137,18 +154,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Неверный формат запроса.",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 	}
 
 	user, err := psql.GetUserByUsername(loginData.Username)
 	if err != nil || user == nil || !security.CheckPasswordHash(loginData.Password, user.Password) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Неверные данные для входа.",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
@@ -158,20 +179,24 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Ошибка создания токена: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"message": "Внутренняя ошибка сервера",
-		})
+		}); err != nil {
+			log.Printf("не удалось отправить JSON-ответ: %v", err)
+		}
 		return
 	}
 
 	// Успешный ответ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]any{
 		"status":   "success",
 		"token":    token,
 		"redirect": "http://localhost:8081/profile",
-	})
+	}); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 
 	// Сгенерировать и сохранить refresh
 	refresh, err := tokens.GenerateRefreshOpaque(32)
@@ -192,9 +217,11 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"message": "Refresh token не найден",
-	})
+	}); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 
 	hash := tokens.HashRefreshToken(c.Value)
 
@@ -205,9 +232,11 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	service.DeleteCookie(w, c.Value)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	if err2 := json.NewEncoder(w).Encode(map[string]string{
 		"message": "Выход выполнен",
-	})
+	}); err2 != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 
 }
 
@@ -224,7 +253,9 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	service.SetRefreshCookie(w, newRefresh, tokens.RefreshTTL())
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"access_token": access,
-	})
+	}); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 }

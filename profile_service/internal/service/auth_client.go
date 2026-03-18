@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -32,7 +33,12 @@ func (c *AuthClient) CheckUserExists(userID int) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Printf("resp.body close: %v", err)
+		}
+	}()
 
 	switch resp.StatusCode {
 	case http.StatusOK:

@@ -4,6 +4,7 @@ import (
 	"auth_service/internal/middleware"
 	"auth_service/internal/repository/psql"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -74,8 +75,11 @@ func GetUserRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err = json.NewEncoder(w).Encode(map[string]interface{}{
 		"user_id": targetUserID,
 		"roles":   roles,
-	})
+	}); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+		return
+	}
 }

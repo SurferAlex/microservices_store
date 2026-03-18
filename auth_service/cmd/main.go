@@ -5,6 +5,7 @@ import (
 	"auth_service/internal/config"
 	"auth_service/internal/repository/psql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,7 +25,10 @@ func main() {
 	connectionString := cfg.GetDBConnectionString()
 
 	// Подключение к БД
-	psql.InitDB(connectionString)
+	_, err := psql.InitDB(connectionString)
+	if err != nil {
+		log.Fatalf("init DB: %v", err)
+	}
 
 	// Регистрация маршрутов
 	r := mux.NewRouter()
@@ -32,8 +36,9 @@ func main() {
 	port := ":8080"
 
 	fmt.Println("🚀 Сервер запущен на http://localhost:8080")
-	fmt.Println("🔍 Проверь: http://localhost:8080/health")
-	fmt.Println("⏹️  Для остановки нажми Ctrl+C")
 
-	http.ListenAndServe(port, r) // Просто запускаем
+	err = http.ListenAndServe(port, r)
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatalf("ошибка запуска сервера: %v", err)
+	} // Просто запускаем
 }

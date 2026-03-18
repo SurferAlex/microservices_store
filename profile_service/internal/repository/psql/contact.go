@@ -2,6 +2,7 @@ package psql
 
 import (
 	"fmt"
+	"log"
 	"profile_service/internal/entity"
 )
 
@@ -41,7 +42,12 @@ func GetContactsByProfileID(profileID int) ([]entity.ProfileContact, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			log.Printf("rows close: %v", err)
+		}
+	}()
 
 	var contacts []entity.ProfileContact
 

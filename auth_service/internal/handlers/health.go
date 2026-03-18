@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -20,5 +21,7 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		Message: "Сервер работает без перебоев",
 	}
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("не удалось отправить JSON-ответ: %v", err)
+	}
 }

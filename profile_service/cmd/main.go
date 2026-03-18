@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"profile_service/internal/api"
 	"profile_service/internal/config"
 	"profile_service/internal/repository/psql"
@@ -24,7 +25,10 @@ func main() {
 	connectionString := cfg.GetDBConnectionString()
 
 	// Подключение к БД
-	psql.InitDB(connectionString)
+	_, err := psql.InitDB(connectionString)
+	if err != nil {
+		log.Fatalf("init db: %v", err)
+	}
 
 	//Создание HTTP клиента для auth_service
 	authClient := service.NewAuthClient(cfg.AuthServiceURL)
@@ -34,11 +38,15 @@ func main() {
 	api.SetupRoutes(r, authClient)
 
 	// Указываем доверенные прокси
-	r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
+		log.Fatalf("set trusted proxies: %v", err)
+	}
 
 	fmt.Println("🚀 Сервер запущен на http://localhost:8081")
 
 	// Запуск сервера
-	r.Run(":8081")
+	if err := r.Run(":8081"); err != nil {
+		log.Fatalf("Ошибка запуска севвера %v", err)
+	}
 
 }

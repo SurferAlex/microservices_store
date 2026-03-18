@@ -30,15 +30,15 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON сериализует дату в JSON формат "2006-01-02"
 func (d Date) MarshalJSON() ([]byte, error) {
-	if d.Time.IsZero() {
+	if d.IsZero() {
 		return []byte("null"), nil
 	}
-	return []byte(fmt.Sprintf(`"%s"`, d.Time.Format("2006-01-02"))), nil
+	return []byte(fmt.Sprintf(`"%s"`, d.Format("2006-01-02"))), nil
 }
 
 // Value для работы с БД
 func (d Date) Value() (driver.Value, error) {
-	if d.Time.IsZero() {
+	if d.IsZero() {
 		return nil, nil
 	}
 	return d.Time, nil

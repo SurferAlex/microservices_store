@@ -4,11 +4,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"os"
 	"time"
 )
-
-var refreshSecret = []byte(os.Getenv("REFRESH_SECRET"))
 
 // Генерация случайного opauqe токена
 func GenerateRefreshOpaque(userID int) (string, error) {

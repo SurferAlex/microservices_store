@@ -2,6 +2,7 @@ package psql
 
 import (
 	"database/sql"
+	"log"
 )
 
 func AssignRoleToUser(userID int, roleName string) error {
@@ -47,7 +48,12 @@ func GetUserRoles(userID int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("rows close %v", err)
+		}
+	}()
+
 	var roles []string
 	for rows.Next() {
 		var name string
@@ -55,6 +61,10 @@ func GetUserRoles(userID int) ([]string, error) {
 			return nil, err
 		}
 		roles = append(roles, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return roles, nil
 }

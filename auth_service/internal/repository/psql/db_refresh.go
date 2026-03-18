@@ -44,7 +44,7 @@ func RevokeRefreshToken(tokenHash string) error {
 func RevokeAllUsersTokens(userID int) error {
 	_, err := db.Exec(`UPDATE refresh_token SET revoked_at = NOW() WHERE user_id = %1 AND revore_at = NULL`, userID)
 	if err != nil {
-		return fmt.Errorf("Ошибка отзыва токена: %w", err)
+		return fmt.Errorf("ошибка отзыва токена: %w", err)
 	}
 	return nil
 }
