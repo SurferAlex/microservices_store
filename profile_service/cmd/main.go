@@ -30,10 +30,10 @@ func main() {
 		log.Fatalf("init db: %v", err)
 	}
 
-	//Создание HTTP клиента для auth_service
+	// Создание HTTP-клиента для auth_service
 	authClient := service.NewAuthClient(cfg.AuthServiceURL)
 
-	// Создание Gin роутера
+	// Создание Gin-роутера
 	r := gin.Default()
 	api.SetupRoutes(r, authClient)
 

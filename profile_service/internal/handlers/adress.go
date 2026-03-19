@@ -171,7 +171,6 @@ func DeleteAddress(c *gin.Context) {
 }
 
 // Установка основного адреса
-// Установка основного адреса
 func SetPrimaryAddress(c *gin.Context) {
 	requestID, _ := c.Get("request_id")
 

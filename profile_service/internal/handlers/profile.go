@@ -73,11 +73,9 @@ func CreateProfile(authClient *service.AuthClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID, _ := c.Get("request_id")
 
-		// Читаем сырое тело запроса для отладки
 		bodyBytes, _ := c.GetRawData()
 		fmt.Printf("🔍 Получен запрос: %s\n", string(bodyBytes))
 
-		// Восстанавливаем тело для биндинга
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 		var payload entity.Profile
@@ -87,8 +85,6 @@ func CreateProfile(authClient *service.AuthClient) gin.HandlerFunc {
 			})
 			return
 		}
-
-		fmt.Printf("✅ Данные распарсены: %+v\n", payload)
 
 		if payload.UserID <= 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user_id обязателен"})

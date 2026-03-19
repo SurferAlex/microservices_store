@@ -19,7 +19,6 @@
 
 docker-compose up -d
 
-
 ### Что добавлено:
 
 1. `workflow_dispatch` — возможность запускать workflow вручную из интерфейса GitHub
