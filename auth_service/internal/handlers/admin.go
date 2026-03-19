@@ -48,7 +48,6 @@ func AssignRole(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-// GET обработчик для проерки ролей
 func GetUserRoles(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.GetUserIDFromContext(r)
 	if !ok {

@@ -12,10 +12,8 @@ type HealthResponse struct {
 }
 
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	// Устанавливаем заголовок
-	w.Header().Set("Countent-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 
-	// Создаем ответ
 	response := HealthResponse{
 		Status:  "OK",
 		Message: "Сервер работает без перебоев",

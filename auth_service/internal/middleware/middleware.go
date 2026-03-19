@@ -12,20 +12,9 @@ import (
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Запоминаем время начала
 		start := time.Now()
-
-		// Логируем начало запроса
-		fmt.Printf("→ [%s] %s %s\n",
-			start.Format("15:04:05"), // время в формате ЧЧ:ММ:СС
-			r.Method,                 // GET, POST, etc.
-			r.URL.Path,               // /users, /users/123
-		)
-
-		// Выполняем основной handler
+		fmt.Printf("→ [%s] %s %s\n", start.Format("15:04:05"), r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
-
-		// Логируем завершение с временем выполнения
 		duration := time.Since(start)
 		fmt.Printf("← Выполнено за %v\n\n", duration)
 	})
@@ -33,10 +22,9 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Установка заголовков для CORS
-		w.Header().Set("Acces-Control-Allow-Origin", "*")
-		w.Header().Set("Acces-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Acces-Control-Allow-Headers", "Countent-type, Authorization")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
@@ -58,7 +46,6 @@ type ctxKey string
 const ctxUserID ctxKey = "user_id"
 
 func AuthMiddleware(next http.Handler) http.Handler {
-	// Публичные ендпоинты не требующие авторизации
 	publicPath := map[string]bool{
 		"/health":       true,
 		"/login":        true,
@@ -68,21 +55,18 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Пропускаем endpoint для проверки пользователей (для межсервисного общения)
 		if strings.HasPrefix(r.URL.Path, "/api/v1/users/") {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// Проверка публичных путей
 		if publicPath[r.URL.Path] {
 			next.ServeHTTP(w, r)
 			return
 		}
-		// Логика проверки токена
 		token := r.Header.Get("Authorization")
 		if token == "" {
-			w.Header().Set("Content-type", "application/json")
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			if _, err := w.Write([]byte(`{"error": "Токен отсутвует."}`)); err != nil {
 				log.Printf("не удалось отправить JSON-ответ: %v", err)
@@ -92,21 +76,19 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := strings.TrimPrefix(token, "Bearer ")
 		claims, err := tokens.ValidateJWT(tokenString)
 		if err != nil {
-			w.Header().Set("Content-type", "application/json")
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			if _, err := w.Write([]byte(`{"error": "Неверный токен."}`)); err != nil {
 				log.Printf("не удалось отправить JSON-ответ: %v", err)
 			}
 			return
 		}
-		// Кладём userID в контекст
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ctxUserID, claims.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// Получить userID из контекста запроса
 func GetUserIDFromContext(r *http.Request) (int, bool) {
 	v := r.Context().Value(ctxUserID)
 	id, ok := v.(int)
